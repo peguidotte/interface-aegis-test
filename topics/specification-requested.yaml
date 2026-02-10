@@ -1,0 +1,28 @@
+# Specification Requested Event Topic
+
+name: specification-requested
+topic: aegis-test.specification.requested
+
+description: |
+  Event published when a new test specification is requested.
+  Published by the portal when a user submits a new specification request.
+  Consumed by the orchestrator to initiate test generation workflow.
+
+producedBy:
+  - portal
+
+consumedBy:
+  - orchestrator
+
+subscriptions:
+  orchestrator: orchestrator.aegis-test.specification.requested
+
+payload:
+  type: event
+  schema: SpecificationRequestedEventV1
+  schemaPath: events/specification-requested.v1.json
+
+deliveryGuarantees:
+  - at-least-once
+
+version: 1.0.0

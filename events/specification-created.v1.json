@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://interfaces.aegis-test.com/events/specification-requested.v1.json",
+  "title": "SpecificationRequestedEventV1",
+  "description": "Event emitted when a test specification is requested",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventTimestamp",
+    "specificationId",
+    "projectId",
+    "requestedBy",
+    "description"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this event"
+    },
+    "eventTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the request was made"
+    },
+    "specificationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the specification being requested"
+    },
+    "projectId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of the project this specification belongs to"
+    },
+    "requestedBy": {
+      "type": "string",
+      "description": "User or service that requested the specification"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 5000,
+      "description": "Detailed description of what should be tested"
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+      "description": "Priority level for test generation"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Additional metadata for the specification"
+    }
+  },
+  "additionalProperties": false
+}

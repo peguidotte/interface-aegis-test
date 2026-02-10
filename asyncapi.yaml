@@ -1,0 +1,219 @@
+asyncapi: 3.1.0
+info:
+  title: Aegis Test Event-Driven Architecture
+  description: 'Complete event topology for the Aegis Test system.
+
+    This specification defines all events flowing through Google Cloud Pub/Sub,
+
+    including producers, consumers, and payload schemas.'
+  version: 1.0.0
+  contact:
+    name: Aegis Test Team
+    url: https://github.com/peguidotte/interface-aegis-test
+  license:
+    name: MIT
+defaultContentType: application/json
+servers:
+  production:
+    host: pubsub.googleapis.com
+    protocol: googlepubsub
+    description: Google Cloud Pub/Sub production server
+    variables:
+      projectId:
+        default: aegis-test-prod
+        description: Google Cloud Project ID
+channels:
+  specification-created:
+    address: projects/{projectId}/topics/aegis-test.specification.created
+    title: Specification Created
+    description: 'Event topic published when a test specification has been successfully
+      created.
+
+      Emitted by the orchestrator after specification is persisted.
+
+      Consumed by analytics and notification services.
+
+
+
+      **Topology:**
+
+      - Producer: orchestrator
+
+      - Consumer: analytics, notifications
+
+      - Guarantee: at-least-once'
+    messages:
+      SpecificationCreatedEventV1:
+        $ref: '#/components/messages/SpecificationCreatedEventV1'
+    bindings:
+      googlepubsub:
+        schemaSettings:
+          name: SpecificationCreatedEventV1
+          encoding: json
+  specification-requested:
+    address: projects/{projectId}/topics/aegis-test.specification.requested
+    title: Specification Requested
+    description: 'Event published when a new test specification is requested.
+
+      Published by the portal when a user submits a new specification request.
+
+      Consumed by the orchestrator to initiate test generation workflow.
+
+
+
+      **Topology:**
+
+      - Producer: portal
+
+      - Consumer: orchestrator
+
+      - Guarantee: at-least-once'
+    messages:
+      SpecificationRequestedEventV1:
+        $ref: '#/components/messages/SpecificationRequestedEventV1'
+    bindings:
+      googlepubsub:
+        schemaSettings:
+          name: SpecificationRequestedEventV1
+          encoding: json
+components:
+  messages:
+    SpecificationCreatedEventV1:
+      name: SpecificationCreatedEventV1
+      title: SpecificationCreatedEventV1
+      contentType: application/json
+      description: Event emitted when a test specification has been successfully created
+      payload:
+        $ref: '#/components/schemas/SpecificationCreatedEventV1'
+      traits:
+      - $ref: '#/components/messageTraits/CommonEventMetadata'
+    SpecificationRequestedEventV1:
+      name: SpecificationRequestedEventV1
+      title: SpecificationRequestedEventV1
+      contentType: application/json
+      description: Event emitted when a test specification is requested
+      payload:
+        $ref: '#/components/schemas/SpecificationRequestedEventV1'
+      traits:
+      - $ref: '#/components/messageTraits/CommonEventMetadata'
+  schemas:
+    SpecificationCreatedEventV1:
+      $schema: http://json-schema.org/draft-07/schema#
+      $id: https://interfaces.aegis-test.com/events/specification-created.v1.json
+      title: SpecificationCreatedEventV1
+      description: Event emitted when a test specification has been successfully created
+      type: object
+      required:
+      - eventId
+      - eventTimestamp
+      - specificationId
+      - projectId
+      - createdBy
+      - status
+      properties:
+        eventId:
+          type: string
+          format: uuid
+          description: Unique identifier for this event
+        eventTimestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the event occurred
+        specificationId:
+          type: string
+          format: uuid
+          description: ID of the created specification
+        projectId:
+          type: string
+          format: uuid
+          description: ID of the project this specification belongs to
+        createdBy:
+          type: string
+          description: User or service that created the specification
+        status:
+          type: string
+          enum:
+          - PENDING
+          - IN_PROGRESS
+          - COMPLETED
+          description: Status of the specification after creation
+        description:
+          type: string
+          description: Description of what should be tested
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional metadata associated with the specification
+      additionalProperties: false
+    SpecificationRequestedEventV1:
+      $schema: http://json-schema.org/draft-07/schema#
+      $id: https://interfaces.aegis-test.com/events/specification-requested.v1.json
+      title: SpecificationRequestedEventV1
+      description: Event emitted when a test specification is requested
+      type: object
+      required:
+      - eventId
+      - eventTimestamp
+      - specificationId
+      - projectId
+      - requestedBy
+      - description
+      properties:
+        eventId:
+          type: string
+          format: uuid
+          description: Unique identifier for this event
+        eventTimestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the request was made
+        specificationId:
+          type: string
+          format: uuid
+          description: Unique identifier for the specification being requested
+        projectId:
+          type: string
+          format: uuid
+          description: ID of the project this specification belongs to
+        requestedBy:
+          type: string
+          description: User or service that requested the specification
+        description:
+          type: string
+          minLength: 1
+          maxLength: 5000
+          description: Detailed description of what should be tested
+        priority:
+          type: string
+          enum:
+          - LOW
+          - MEDIUM
+          - HIGH
+          - CRITICAL
+          description: Priority level for test generation
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional metadata for the specification
+      additionalProperties: false
+  messageTraits:
+    CommonEventMetadata:
+      headers:
+        type: object
+        properties:
+          schema:
+            type: string
+            description: Schema identifier for validation
+            example: SpecificationRequestedEventV1
+          correlationId:
+            type: string
+            format: uuid
+            description: Correlation ID for tracing events across services
+          source:
+            type: string
+            description: Service that published the event
+            example: portal
+          timestamp:
+            type: string
+            format: date-time
+            description: Server timestamp when event was published

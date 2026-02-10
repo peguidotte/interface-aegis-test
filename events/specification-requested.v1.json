@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://interfaces.aegis-test.com/events/specification-created.v1.json",
+  "title": "SpecificationCreatedEventV1",
+  "description": "Event emitted when a test specification has been successfully created",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventTimestamp",
+    "specificationId",
+    "projectId",
+    "createdBy",
+    "status"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this event"
+    },
+    "eventTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the event occurred"
+    },
+    "specificationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of the created specification"
+    },
+    "projectId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of the project this specification belongs to"
+    },
+    "createdBy": {
+      "type": "string",
+      "description": "User or service that created the specification"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["PENDING", "IN_PROGRESS", "COMPLETED"],
+      "description": "Status of the specification after creation"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of what should be tested"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Additional metadata associated with the specification"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,30 @@
+# Specification Created Event Topic
+
+name: specification-created
+topic: aegis-test.specification.created
+
+description: |
+  Event topic published when a test specification has been successfully created.
+  Emitted by the orchestrator after specification is persisted.
+  Consumed by analytics and notification services.
+
+producedBy:
+  - orchestrator
+
+consumedBy:
+  - analytics
+  - notifications
+
+subscriptions:
+  analytics: analytics.aegis-test.specification.created
+  notifications: notifications.aegis-test.specification.created
+
+payload:
+  type: event
+  schema: SpecificationCreatedEventV1
+  schemaPath: events/specification-created.v1.json
+
+deliveryGuarantees:
+  - at-least-once
+
+version: 1.0.0
