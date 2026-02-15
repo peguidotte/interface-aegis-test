@@ -65,15 +65,14 @@ jobs:
           test -f wrappers/python/README.md || (echo "Missing Python README.md" && exit 1)
           test -f docs/GETTING_STARTED.md || (echo "Missing GETTING_STARTED.md" && exit 1)
 
-      - name: Validate YAML files
+      - name: Validate YAML syntax
         run: |
+          python -m pip install pyyaml
           for file in topics/*.yaml asyncapi.yaml; do
-            if command -v yamllint &> /dev/null; then
-              yamllint "$file"
-            else
-              echo "yamllint not available, skipping YAML validation"
-            fi
+            echo "Validating $file..."
+            python -c "import yaml; yaml.safe_load(open('$file'))" || exit 1
           done
+          echo "✓ All YAML files are syntactically valid"
 
   validate-json-schemas:
     name: Validate JSON Schemas
