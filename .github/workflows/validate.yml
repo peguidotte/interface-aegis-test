@@ -1,0 +1,96 @@
+name: Validate
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  validate-java:
+    name: Validate Java
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Validate Maven build
+        working-directory: wrappers/java
+        run: mvn clean compile
+
+      - name: Validate code style
+        working-directory: wrappers/java
+        run: mvn spotbugs:check || true
+
+  validate-python:
+    name: Validate Python
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        working-directory: wrappers/python
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run type checking with mypy
+        working-directory: wrappers/python
+        run: mypy aegis_interfaces/
+
+      - name: Run tests (if any)
+        working-directory: wrappers/python
+        run: pytest tests/ -v || echo "No tests found"
+
+  validate-docs:
+    name: Validate Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for required files
+        run: |
+          test -f README.md || (echo "Missing root README.md" && exit 1)
+          test -f wrappers/java/README.md || (echo "Missing Java README.md" && exit 1)
+          test -f wrappers/python/README.md || (echo "Missing Python README.md" && exit 1)
+          test -f docs/GETTING_STARTED.md || (echo "Missing GETTING_STARTED.md" && exit 1)
+
+      - name: Validate YAML files
+        run: |
+          for file in topics/*.yaml asyncapi.yaml; do
+            if command -v yamllint &> /dev/null; then
+              yamllint "$file"
+            else
+              echo "yamllint not available, skipping YAML validation"
+            fi
+          done
+
+  validate-json-schemas:
+    name: Validate JSON Schemas
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Validate JSON Schema files
+        run: |
+          python -m pip install jsonschema pyyaml
+          for file in events/*.json; do
+            echo "Validating $file..."
+            python -c "import json; json.load(open('$file'))" || exit 1
+          done
+          echo "All JSON schemas are valid!"

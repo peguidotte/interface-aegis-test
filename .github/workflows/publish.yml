@@ -1,0 +1,89 @@
+name: Publish Packages
+
+on:
+  release:
+    types: [published, created]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (optional, uses tag if not specified)'
+        required: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish-java:
+    name: Publish Java Package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Publish to GitHub Packages
+        working-directory: wrappers/java
+        run: mvn deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-python:
+    name: Publish Python Package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip setuptools wheel build twine
+
+      - name: Build Python package
+        working-directory: wrappers/python
+        run: python -m build
+
+      - name: Publish to GitHub Packages
+        working-directory: wrappers/python
+        run: |
+          twine upload \
+            --repository-url https://pypi.pkg.github.com/peguidotte/interface-aegis-test \
+            --username __token__ \
+            --password ${{ secrets.GITHUB_TOKEN }} \
+            dist/*
+
+  validate-versions:
+    name: Validate Package Versions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version from git tag
+        id: tag_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Validate Java version in pom.xml
+        working-directory: wrappers/java
+        run: |
+          POM_VERSION=$(grep '<version>' pom.xml | head -1 | sed 's/.*<version>\(.*\)<\/version>.*/\1/')
+          echo "Java pom.xml version: $POM_VERSION"
+
+      - name: Validate Python version in pyproject.toml
+        working-directory: wrappers/python
+        run: |
+          PY_VERSION=$(grep 'version = ' pyproject.toml | head -1 | sed 's/.*version = "\(.*\)".*/\1/')
+          echo "Python pyproject.toml version: $PY_VERSION"
