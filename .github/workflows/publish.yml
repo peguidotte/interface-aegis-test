@@ -31,7 +31,7 @@ jobs:
         working-directory: wrappers/java
         run: mvn deploy
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TOKEN: ${{ secrets.TOKEN }}
 
   publish-python:
     name: Publish Python Package
@@ -59,7 +59,7 @@ jobs:
           twine upload \
             --repository-url https://pypi.pkg.github.com/peguidotte/interface-aegis-test \
             --username __token__ \
-            --password ${{ secrets.GITHUB_TOKEN }} \
+            --password ${{ secrets.TOKEN }} \
             dist/*
 
   validate-versions:
