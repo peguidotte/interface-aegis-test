@@ -23,9 +23,9 @@ jobs:
         working-directory: wrappers/java
         run: mvn clean compile
 
-      - name: Validate code style
+      - name: Build package
         working-directory: wrappers/java
-        run: mvn spotbugs:check || true
+        run: mvn package -DskipTests
 
   validate-python:
     name: Validate Python
