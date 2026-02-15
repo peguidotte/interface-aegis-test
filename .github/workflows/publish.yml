@@ -26,12 +26,16 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+          server-id: github
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
 
       - name: Publish to GitHub Packages
         working-directory: wrappers/java
         run: mvn deploy
         env:
-          TOKEN: ${{ secrets.TOKEN }}
+          MAVEN_USERNAME: github
+          MAVEN_PASSWORD: ${{ secrets.TOKEN }}
 
   publish-python:
     name: Publish Python Package
